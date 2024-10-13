@@ -2,8 +2,8 @@
 #include <setjmp.h>
 #include "scheduler.h"
 
-// Array to hold tasks
-static Task tasks[MAX_TASKS];
+/* ** Global task array, no need for 'static' since it's now shared across files ** */
+Task tasks[MAX_TASKS];
 static int current_task = -1;  // The current task ID
 static int total_tasks = 0;    // Total number of tasks
 
@@ -25,8 +25,7 @@ void create_task(void (*task_func)(void), int task_id) {
         total_tasks++;
         tasks[task_id].active = 1;  // Activate the task
         if (setjmp(tasks[task_id].context) == 0) {
-            printf("Debug: Running the actual task function");
-            /*Run the function*/
+            printf("Debug: Running task %d\n", task_id + 1);
             task_func();  // Run the task function
         }
     } else {
@@ -39,11 +38,11 @@ void create_task(void (*task_func)(void), int task_id) {
 */
 void scheduler_run(void) {
     while (1) {
-        int active_tasks = 0;
+        int active_tasks = 0;  // Count active tasks
         
         for (int i = 0; i < MAX_TASKS; i++) {
             if (tasks[i].active) {
-                active_tasks++;  // Count active tasks
+                active_tasks++;
                 current_task = i;
                 if (setjmp(tasks[i].context) == 0) {
                     printf("Switching to task %d\n", i + 1);
@@ -54,7 +53,7 @@ void scheduler_run(void) {
         
         if (active_tasks == 0) {
             printf("All tasks completed. Exiting scheduler.\n");
-            break; 
+            break;
         }
     }
 }
@@ -69,45 +68,4 @@ void yield(void) {
             longjmp(tasks[(current_task + 1) % MAX_TASKS].context, 1);  // Switch to the next task
         }
     }
-}
-
-/*
-**  Task 1: A simple task that runs a loop and yields after each iteration.
-*/
-void task1(void) {
-    for (int i = 0; i < 5; i++) {
-        printf("Task 1, iteration %d\n", i + 1);
-        yield();  // Yield control to the scheduler
-    }
-    tasks[0].active = 0;  // Mark task as finished
-}
-
-/*
-**  Task 2: A simple task that runs a loop and yields after each iteration.
-*/
-void task2(void) {
-    for (int i = 0; i < 5; i++) {
-        printf("Task 2, iteration %d\n", i + 1);
-        yield();  // Yield control to the scheduler
-    }
-    tasks[1].active = 0;  // Mark task as finished
-}
-
-/*
-**  Task 3: Requests user input and yields control after processing the input.
-*/
-void task3(void) {
-    char input[100];
-    for (int i = 0; i < 5; i++) {
-        printf("Task 3, iteration %d: Enter a string: ", i + 1);
-        
-        // Request user input
-        if (fgets(input, sizeof(input), stdin) != NULL) {
-            // Print the user input
-            printf("Task 3 received input: %s\n", input);
-        }
-
-        yield();  // Yield control to the scheduler
-    }
-    tasks[2].active = 0;  // Mark task as finished
 }

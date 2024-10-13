@@ -12,10 +12,7 @@ BUILD_DIR = build
 TARGET = $(BUILD_DIR)/scheduler_program
 
 # Source files
-SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/scheduler.c
-
-# Object files
-OBJS = $(SRCS:.c=.o)
+SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/scheduler.c $(SRC_DIR)/tasks.c $(SRC_DIR)/utils.c
 
 # Default target
 all: $(TARGET)
